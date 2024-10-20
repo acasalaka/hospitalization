@@ -12,5 +12,5 @@ public interface FacilityService {
     Facility addFacility (Facility facility);
     List<Facility> getAllFacilities();
     List<Facility> getSelectedFacilitiesByIds(List<UUID> facilityIds);
-    
+    Facility getFacilityById(UUID id);
 }

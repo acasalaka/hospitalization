@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Reservation Detail</title>
+    <style>
+        .btn-info {
+            background-color: #6c63ff;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <nav th:replace="~{fragments/navbar :: navbar}"></nav>
+    <div class="container mt-5">
+        <h2 class="text-center mb-4">Reservation Detail</h2>
+
+        <div class="card p-4">
+            <div class="d-flex justify-content-end">
+                <a href="#" class="btn btn-primary me-2">Update Room</a>
+                <a th:href="@{/reservations/{reservationId}/update-facilities(reservationId=${reservation.id})}" class="btn btn-primary me-2">Update Facility</a>
+                <a th:href="@{/reservations/{reservationId}/delete(reservationId=${reservation.id})}" class="btn btn-danger">Delete</a>
+            </div>
+
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <p><strong>ID:</strong> <span th:text="${reservation.id}"></span></p>
+                    <p><strong>Patient Name:</strong> <span th:text="${patient.name}"></span></p>
+                    <p><strong>Email:</strong> <span th:text="${patient.email}"></span></p>
+                    <p><strong>Gender:</strong> <span th:text="${patient.gender ? 'Male' : 'Female'}"></span></p>
+                    <p><strong>Room Name:</strong> <a th:href="@{/rooms/{roomId}(roomId=${room.id})}" th:text="${room.name}"></a></p>
+                    <p><strong>Assigned Nurse:</strong> <span th:text="${nurse.name}"></span></p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Date In:</strong> <span th:text="${#dates.format(reservation.dateIn, 'dd MMMM yyyy')}"></span></p>
+                    <p><strong>Date Out:</strong> <span th:text="${#dates.format(reservation.dateOut, 'dd MMMM yyyy')}"></span></p>
+                    <p><strong>Facilities:</strong> 
+                        <span th:each="facility : ${facilities}" th:text="${facility.name} + ', '"></span>
+                    </p>
+                    <p><strong>Total Fee:</strong> 
+                        <a href="#" class="btn btn-link" data-bs-toggle="modal" data-bs-target="#feeDetailModal" th:text="${ #numbers.formatCurrency(roomTotal)}"></a>
+                    </p>
+                    
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="feeDetailModal" tabindex="-1" aria-labelledby="feeDetailLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="feeDetailLabel">Fee Details</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p><strong>Room:</strong> <span th:text="${room.name}"></span> (<span th:text="${#numbers.formatCurrency(room.pricePerDay)}"></span>/day)</p>
+                        <p><strong>Room Total:</strong> <span th:text="${#numbers.formatCurrency(room.pricePerDay * diffDays)}"></span></p>
+                        <p th:each="facility : ${facilities}">
+                            <strong th:text="${facility.name}"></strong>: <span th:text="${#numbers.formatCurrency(facility.fee)}"></span>
+                        </p>
+                        <hr>
+                        <p><strong>Total:</strong> <span th:text="${#numbers.formatCurrency(roomTotal)}"></span></p>
+                    </div>                    
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Back</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

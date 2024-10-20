@@ -18,5 +18,7 @@ public interface RoomService {
     void deleteRoomById(Room room);
     // List<Room> findAllByIsDeletedFalse();
     // List<Room> findAllAvailableRoom(Date dateIn, Date dateOut);
+    List<Room> getAvailableRooms(Date dateIn, Date dateOut);
+    
 
 }

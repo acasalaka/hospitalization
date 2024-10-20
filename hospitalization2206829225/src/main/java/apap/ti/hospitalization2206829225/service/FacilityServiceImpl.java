@@ -29,6 +29,11 @@ public class FacilityServiceImpl implements FacilityService {
         return facilityDb.findAllById(facilityIds);
     }
 
+    @Override
+    public Facility getFacilityById(UUID id) {
+        return facilityDb.findById(id).orElse(null);
+    }
+
     
 }
     

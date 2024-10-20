@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -84,6 +85,21 @@ public class RoomServiceImpl implements RoomService {
     public void deleteRoomById(Room room) {
        roomDb.delete(room);
     }
+    @Override
+    public List<Room> getAvailableRooms(Date dateIn, Date dateOut) {
+        List<Room> allRooms = roomDb.findAll();
+
+            // Filter room berdasarkan kapasitas dan overlap reservasi
+            return allRooms.stream().filter(room -> {
+                long overlappingReservations = room.getReservations().stream().filter(reservation -> {
+                    return reservation.getDateOut().after(dateIn) && reservation.getDateIn().before(dateOut);
+                }).count();
+
+                return overlappingReservations < room.getMaxCapacity();
+            }).collect(Collectors.toList());
+    }
+
+
 
     
     // @Override

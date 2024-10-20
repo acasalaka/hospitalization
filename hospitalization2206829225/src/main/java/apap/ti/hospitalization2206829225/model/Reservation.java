@@ -8,7 +8,7 @@ import jakarta.persistence.*;
 import java.util.List;
 import java.util.UUID;
 import java.util.Date;
-import java.time.LocalDateTime;
+
 
 @Getter
 @Setter
@@ -48,8 +48,8 @@ public class Reservation {
     )
     private List<Facility> facilities;
 
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private Date createdAt;
+    private Date updatedAt;
 
     private Boolean isDeleted = false;
 }

@@ -41,7 +41,7 @@
                 <thead class="table-primary">
                     <tr>
                         <th>No</th>
-                        <th>Name</th>
+                        <th>Patient Name</th>
                         <th>Gender</th>
                         <th>Email</th>
                     </tr>
@@ -49,12 +49,14 @@
                 <tbody>
                     <tr th:each="reservation, stat : ${reservations}">
                         <td th:text="${stat.index + 1}">1</td>
-                        <td th:text="${reservation.patient.name}"></td>
-                        <td th:text="${reservation.patient.gender ? 'Male' : 'Female'}"></td>
-                        <td th:text="${reservation.patient.email}"></td>
+                        <td th:text="${patientMap[reservation.id].name}"></td> 
+                        <td th:text="${patientMap[reservation.id].gender ? 'Male' : 'Female'}"></td>
+                        <td th:text="${patientMap[reservation.id].email}"></td>
                     </tr>
                 </tbody>
             </table>
+            
+            
         </div>
 
         <div class="d-flex justify-content-between mt-3">

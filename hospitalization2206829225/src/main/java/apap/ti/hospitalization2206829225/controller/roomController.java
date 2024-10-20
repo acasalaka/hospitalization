@@ -3,14 +3,18 @@ package apap.ti.hospitalization2206829225.controller;
 import java.util.Date;
 import java.util.List;
 
+import java.util.HashMap;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 
 import apap.ti.hospitalization2206829225.DTO.AddRoomDTO;
 import apap.ti.hospitalization2206829225.DTO.UpdateRoomDTO;
+import apap.ti.hospitalization2206829225.model.Patient;
 import apap.ti.hospitalization2206829225.model.Reservation;
 import apap.ti.hospitalization2206829225.model.Room;
+import apap.ti.hospitalization2206829225.service.PatientService;
 import apap.ti.hospitalization2206829225.service.ReservationService;
 import apap.ti.hospitalization2206829225.service.RoomService;
 import jakarta.validation.Valid;
@@ -33,7 +37,7 @@ public class roomController {
     private RoomService roomService;
 
     @Autowired
-    private ReservationService reservationService;
+    private PatientService patientService;
 
     @GetMapping("/rooms")
     public String viewallRoom(Model model) {
@@ -106,18 +110,30 @@ public class roomController {
     }
 
     @GetMapping("/rooms/{roomId}")
-    public String viewRoomDetail(@PathVariable("roomId") String roomId, Model model) {
-        var room = roomService.getRoomByID(roomId);
-        if (room == null) {
-            model.addAttribute("errorMessage", "Room not found.");
-            return "error-page"; 
-        }
-        model.addAttribute("room", room);
-        model.addAttribute("activePage", room);
-
-
-        return "view-room";
+public String viewRoomDetail(@PathVariable("roomId") String roomId, Model model) {
+    var room = roomService.getRoomByID(roomId);
+    if (room == null) {
+        model.addAttribute("errorMessage", "Room not found.");
+        return "error-page"; 
     }
+
+    List<Reservation> reservations = room.getReservations();
+
+    // Retrieve patients for each reservation
+    Map<String, Patient> patientMap = new HashMap<>();
+    for (Reservation reservation : reservations) {
+        Patient patient = patientService.getPatientByID(reservation.getPatientId());
+        patientMap.put(reservation.getId(), patient); 
+    }
+
+    model.addAttribute("room", room);
+    model.addAttribute("reservations", reservations);
+    model.addAttribute("patientMap", patientMap);  
+    model.addAttribute("activePage", "rooms");
+
+    return "view-room";
+}
+
     
     @PostMapping("/rooms/{roomId}/delete")
     public String deleteRoom(@PathVariable("roomId") String roomId, Model model) {

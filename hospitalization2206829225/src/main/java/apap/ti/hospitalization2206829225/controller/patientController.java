@@ -34,13 +34,16 @@ public class patientController {
     @Autowired
     private NurseService nurseService;
 
+    @Autowired
+    private ReservationService reservationService;
+
     @GetMapping("/")
     public String homePage(Model model) {
-        // int totalReservations = reservationService.getTotalReservations();
+        int totalReservations = reservationService.getTotalReservations();
         int totalRooms = roomService.getTotalRooms();
         int totalPatients = patientService.getTotalPatients();
 
-        // model.addAttribute("totalReservations", totalReservations);
+        model.addAttribute("totalReservations", totalReservations);
         model.addAttribute("totalRooms", totalRooms);
         model.addAttribute("totalPatients", totalPatients);
         model.addAttribute("activePage", "home");
@@ -70,12 +73,10 @@ public class patientController {
 
         model.addAttribute("reservationDTO", new AddReservationDTO());
         model.addAttribute("nurses", nurses);
-        model.addAttribute("responseMessage", 
-            String.format("Patient baru dengan nama '%s' berhasil ditambahkan.", patient.getName()));
 
 
 
-        return "find-room"; 
+        return "redirect:/reservations/validateDate/" + patient.getId(); 
         
     }
     

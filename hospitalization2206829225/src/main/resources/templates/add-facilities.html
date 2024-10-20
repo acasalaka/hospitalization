@@ -15,8 +15,10 @@
     <div class="container mt-5">
         <h2 class="text-center">Step 3 of 3: Add Facilities (Optional)</h2>
         
-        <form th:action="@{/reservations/addFacilities}" method="post" th:object="${reservationDTO}">
-            <input type="hidden" th:field="*{roomId}" />
+        <form th:action="@{|/reservations/addFacilities/${reservationDTO.patientId}|}" method="post" th:object="${reservationDTO}">
+            <input type="hidden" name="dateIn" th:value="${#dates.format(reservationDTO.dateIn, 'yyyy-MM-dd')}" />
+            <input type="hidden" name="dateOut" th:value="${#dates.format(reservationDTO.dateOut, 'yyyy-MM-dd')}" />
+            <input type="hidden" name="roomId" th:value="${reservationDTO.roomId}" />
             <div class="mb-3">
                 <label for="roomId" class="form-label">Room</label>
                 <input type="text" class="form-control" id="roomName" th:field="*{roomName}" readonly>
