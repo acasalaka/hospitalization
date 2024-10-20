@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-Hospitalization2206829225Application<hospitalization2206829225>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "apap.ti.hospitalization2206829225.Hospitalization2206829225Application",
+            "projectName": "hospitalization2206829225",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}

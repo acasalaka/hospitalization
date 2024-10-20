@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9"
+          crossorigin="anonymous">
+    <title>Patient Found</title>
+</head>
+<body>
+    <nav th:replace="~{fragments/navbar :: navbar}"></nav>
+
+    <div class="container mt-5">
+        <h2 class="text-center">Patient Found</h2>
+        
+        <div class="card mt-4 mx-auto" style="max-width: 500px;">
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label"><strong>NIK</strong></label>
+                    <p th:text="${patient.NIK}" class="form-control-plaintext"></p>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label"><strong>Name</strong></label>
+                    <p th:text="${patient.name}" class="form-control-plaintext"></p>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label"><strong>Gender</strong></label>
+                    <p th:text="${patient.gender ? 'Female' : 'Male'}" class="form-control-plaintext"></p>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label"><strong>Date of Birth</strong></label>
+                    <p th:text="${#dates.format(patient.birthDate, 'dd-MM-yyyy')}" class="form-control-plaintext"></p>
+                </div>
+
+                <form th:action="@{/reservations/create}" method="post">
+                    <button type="submit" class="btn btn-primary w-100">Create Reservation</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+</body>
+</html>

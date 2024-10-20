@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Add Facilities</title>
+    <style>
+        .table td {
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body>
+    <nav th:replace="~{fragments/navbar :: navbar}"></nav>
+    <div class="container mt-5">
+        <h2 class="text-center">Step 3 of 3: Add Facilities (Optional)</h2>
+        
+        <form th:action="@{/reservations/addFacilities}" method="post" th:object="${reservationDTO}">
+            <input type="hidden" th:field="*{roomId}" />
+            <div class="mb-3">
+                <label for="roomId" class="form-label">Room</label>
+                <input type="text" class="form-control" id="roomName" th:field="*{roomName}" readonly>
+            </div>            
+
+            <h4>Facilities</h4>
+
+            <table class="table" id="facilitiesTable">
+                <thead>
+                    <tr>
+                        <th>Facility</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="facility, iterationStatus : *{listFacilities}">
+                        <td>
+                            <select th:field="*{listFacilities[__${iterationStatus.index}__].id}" class="form-control">
+                                <option th:each="availableFacility : ${facilities}"
+                                        th:value="${availableFacility.id}"
+                                        th:text="${availableFacility.name} + ' (+Rp ' + availableFacility.fee + ')'">
+                                </option>
+                            </select>
+                        </td>
+                        <td>
+                            <button type="button" class="btn btn-danger deleteRowBtn">Delete</button>
+                        </td>
+                    </tr>                    
+                </tbody>
+            </table>
+
+            <div class="d-flex justify-content-between mt-4">
+                <button type="button" class="btn btn-primary" id="addRowBtn">Add Row</button>
+                <button type="submit" class="btn btn-success">Submit</button>
+                <a href="@{/reservations/validateDate}" class="btn btn-secondary">Previous</a>
+            </div>
+        </form>
+    </div>
+
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        const availableFacilities = /*[[${facilities}]]*/ [];
+        /*]]>*/
+    </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const facilitiesTable = document.getElementById("facilitiesTable").getElementsByTagName('tbody')[0];
+            const addRowBtn = document.getElementById("addRowBtn");
+
+
+            function createFacilityRow() {
+                const newRow = document.createElement('tr');
+
+                const facilitySelect = document.createElement('select');
+                facilitySelect.classList.add('form-control', 'facilitySelect');
+                facilitySelect.name = `listFacilities[${facilitiesTable.rows.length}].id`; 
+
+                availableFacilities.forEach(facility => {
+                    const option = document.createElement('option');
+                    option.value = facility.id;
+                    option.text = `${facility.name} (+Rp ${facility.fee})`;
+                    facilitySelect.appendChild(option);
+                });
+
+                const facilityCell = document.createElement('td');
+                facilityCell.appendChild(facilitySelect);
+
+                const deleteCell = document.createElement('td');
+                const deleteButton = document.createElement('button');
+                deleteButton.classList.add('btn', 'btn-danger');
+                deleteButton.type = 'button';
+                deleteButton.textContent = 'Delete';
+                deleteButton.addEventListener('click', function () {
+                    deleteRow(newRow);
+                });
+                deleteCell.appendChild(deleteButton);
+
+                newRow.appendChild(facilityCell);
+                newRow.appendChild(deleteCell);
+
+                facilitiesTable.appendChild(newRow);
+            }
+
+            function deleteRow(row) {
+                facilitiesTable.removeChild(row);
+            }
+
+            addRowBtn.addEventListener('click', createFacilityRow);
+
+            document.querySelectorAll('.deleteRowBtn').forEach(button => {
+                button.addEventListener('click', function () {
+                    const row = this.closest('tr');
+                    deleteRow(row);
+                });
+            });
+        });
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+</body>
+</html>

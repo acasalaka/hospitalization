@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reservation Feedback</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h4>Reservation Success</h4>
+            </div>
+            <div class="card-body">
+                <p>Your reservation has been successfully created!</p>
+                <p><strong>Reservation ID:</strong> <span th:text="${reservationId}"></span></p>
+                <p>Thank you for choosing our service.</p>
+                <a href="/" class="btn btn-primary">Back to Home</a>
+                <a href="/reservations/create" class="btn btn-secondary">Make Another Reservation</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

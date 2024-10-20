@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Navbar</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUa1lmztGrJ8DOd1LuP96GIJpyK1d+KePsd5+LQ/5gHGFK+twGDbZj+gG6hL" crossorigin="anonymous">
+    <style>
+        .active {
+            font-weight: bold;
+            color: black !important;
+        }
+
+    </style>
+</head>
+
+<body>
+    <nav th:fragment="navbar" class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold text-white" th:href="@{/}">
+                <img src="https://via.placeholder.com/40" alt="Logo">
+                Apap Medika
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/}" th:classappend="${activePage == 'home'} ? 'active'">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/reservations/viewall}" th:classappend="${activePage == 'reservations'} ? 'active'">Reservations</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/rooms}" th:classappend="${activePage == 'rooms'} ? 'active'">Rooms</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-w76AghVQb0f1oS58jBB2WvIwt2G4rPoxt1b8EE1txz5zsPWq/fIwoT//4b8fEcJh" crossorigin="anonymous">
+    </script>
+</body>
+
+</html>

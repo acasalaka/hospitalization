@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css" />
+    <title>Add Patient</title>
+</head>
+<body>
+    <nav th:replace="~{fragments/navbar :: navbar}"></nav>
+    <div class="container mt-5">
+        <h1 class="text-center">Step 1 of 3 
+            CreatePatient</h1>
+        <form th:action="@{/patients/create}" th:object="${patientDTO}" method="post" class="mt-4">
+            <div class="mb-3">
+                <label for="nama" class="form-label">Name</label>
+                <input type="text" class="form-control" id="nama" th:field="*{nama}" required>
+            </div>
+            <div class="mb-3">
+                <label for="NIK" class="form-label">NIK</label>
+                <input type="text" class="form-control" id="NIK" th:field="*{NIK}" required>
+            </div>
+            <div class="mb-3">
+                <label for="email" class="form-label">Email</label>
+                <input type="text" class="form-control" id="email" th:field="*{email}" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Gender</label>
+                <div>
+                    <input type="radio" class="form-check-input" id="male" name="gender" th:field="*{gender}" value="true">
+                    <label for="male" class="form-check-label">Male</label>
+                </div>
+                <div>
+                    <input type="radio" class="form-check-input" id="female" name="gender" th:field="*{gender}" value="false">
+                    <label for="female" class="form-check-label">Female</label>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <label for="birthDate" class="form-label">Date of Birth</label>
+                <input type="date" class="form-control" id="birthDate" th:field="*{birthDate}" required>
+            </div>                        
+            <div class="d-flex justify-content-end">
+                <button type="submit" class="btn btn-primary me-2">Save & Continue</button>
+                <a href="/" class="btn btn-danger">Cancel</a>
+            </div>
+        </form>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+</body>
+</html>

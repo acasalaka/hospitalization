@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <object th:include="~{fragments/common :: js}" th:remove="tag"></object>
+    <object th:include="~{fragments/common :: css}" th:remove="tag"></object>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css" />
+    <title>Home</title>
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <style>
+        .statistics-card {
+            text-align: center;
+            padding: 20px;
+            background-color: #007bff;
+            color: white;
+            border-radius: 10px;
+            margin: 10px;
+        }
+    </style>
+</head>
+<body>
+    <nav th:replace="~{fragments/navbar :: navbar}"></nav>
+        <div class="container">
+            <h1 class="text-center mt-5">Hospitalization System</h1>
+            <div class="row mt-5 justify-content-center">
+                <div class="col-md-3">
+                    <div class="statistics-card">
+                        <h2 th:text="20"></h2>
+                        <p>Reservations Created</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="statistics-card">
+                        <h2 th:text="${totalRooms}"></h2>
+                        <p>Rooms Recorded</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="statistics-card">
+                        <h2 th:text="${totalPatients}"></h2>
+                        <p>Patients Recorded</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" integrity="sha384-w76AghVQb0f1oS58jBB2WvIwt2G4rPoxt1b8EE1txz5zsPWq/fIwoT//4b8fEcJh" crossorigin="anonymous"></script>
+</body>
+</html>
