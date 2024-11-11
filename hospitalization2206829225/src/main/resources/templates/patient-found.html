@@ -13,31 +13,30 @@
     <div class="container mt-5">
         <h2 class="text-center">Patient Found</h2>
         
-        <div class="card mt-4 mx-auto" style="max-width: 500px;">
-            <div class="card-body">
-                <div class="mb-3">
-                    <label class="form-label"><strong>NIK</strong></label>
-                    <p th:text="${patient.NIK}" class="form-control-plaintext"></p>
-                </div>
+        <div class="row justify-content-center mt-5">
+            <div class="card" style="width: 30rem;">
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="nik" class="fw-bold">NIK</label>
+                        <input class="form-control" type="text" id="NIK" th:value="${patientDTO.NIK}" readonly />
+                    </div>
+                    <div class="form-group">
+                        <label for="name" class="fw-bold">Name</label>
+                        <input class="form-control" type="text" id="nama" th:value="${patientDTO.nama}" readonly />
+                    </div>
+                    <div class="form-group">
+                        <label for="gender" class="fw-bold">Gender</label>
+                        <input class="form-control" type="text" id="gender" th:value="${patientDTO.gender ? 'Male' : 'Female'}" readonly />
+                    </div>
+                    <div class="form-group">
+                        <label for="birthDate" class="fw-bold">Date of Birth</label>
+                        <input class="form-control" type="text" id="birthDate" th:value="${#dates.format(patientDTO.birthDate, 'dd-MM-yyyy')}" readonly />
+                    </div>
 
-                <div class="mb-3">
-                    <label class="form-label"><strong>Name</strong></label>
-                    <p th:text="${patient.name}" class="form-control-plaintext"></p>
+                    <div class="text-center mt-4">
+                        <a th:href="@{'/reservations/validateDate/' + ${patientDTO.id}}" class="btn btn-primary">Create Reservation</a>
+                    </div>
                 </div>
-
-                <div class="mb-3">
-                    <label class="form-label"><strong>Gender</strong></label>
-                    <p th:text="${patient.gender ? 'Female' : 'Male'}" class="form-control-plaintext"></p>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label"><strong>Date of Birth</strong></label>
-                    <p th:text="${#dates.format(patient.birthDate, 'dd-MM-yyyy')}" class="form-control-plaintext"></p>
-                </div>
-
-                <form th:action="@{/reservations/create}" method="post">
-                    <button type="submit" class="btn btn-primary w-100">Create Reservation</button>
-                </form>
             </div>
         </div>
     </div>
