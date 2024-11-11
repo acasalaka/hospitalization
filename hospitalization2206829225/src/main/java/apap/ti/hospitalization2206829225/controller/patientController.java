@@ -65,6 +65,7 @@ public class patientController {
         patient.setName(patientDTO.getNama());
         patient.setEmail(patientDTO.getEmail());
         patient.setGender(patientDTO.isGender());
+        patient.setBirthDate(patientDTO.getBirthDate());
         patient.setCreatedDate(java.time.LocalDateTime.now());
         patient.setNIK(patientDTO.getNIK());
 

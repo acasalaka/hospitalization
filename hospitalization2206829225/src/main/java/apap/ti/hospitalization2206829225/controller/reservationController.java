@@ -1,7 +1,5 @@
 package apap.ti.hospitalization2206829225.controller;
 
-
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
@@ -24,6 +22,7 @@ import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 
 import apap.ti.hospitalization2206829225.DTO.AddReservationDTO;
+import apap.ti.hospitalization2206829225.DTO.ShowPatientDTO;
 import apap.ti.hospitalization2206829225.DTO.searchDTO;
 import apap.ti.hospitalization2206829225.model.Facility;
 import apap.ti.hospitalization2206829225.model.Nurse;
@@ -35,6 +34,8 @@ import apap.ti.hospitalization2206829225.service.NurseService;
 import apap.ti.hospitalization2206829225.service.PatientService;
 import apap.ti.hospitalization2206829225.service.ReservationService;
 import apap.ti.hospitalization2206829225.service.RoomService;
+import jakarta.validation.Valid;
+
 import org.springframework.web.bind.annotation.RequestBody;
 
 
@@ -63,99 +64,126 @@ public class reservationController {
         model.addAttribute("searchDTO", new searchDTO());
         return "search-patient";  
     }
-    
+
     @PostMapping("/searchPatient")
-    public String searchPatient(@RequestParam("NIK") String NIK, Model model) {
-        var patient = patientService.getPatientByNik(NIK);
-        var reservationDTO = new AddReservationDTO();
-        if (patient == null) {
+    public String searchPatient(@ModelAttribute("searchDTO") searchDTO searchDTO, Model model ){
+        String nik = searchDTO.getNik();
+        Patient patient = patientService.getPatientByNik(nik);
+
+        if (patient == null){
             model.addAttribute("message", "Patient Not Found");
             return "patient-not-found";
         }
-        reservationDTO.setPatientId(patient.getId());
-        model.addAttribute("patient", patient);
-        model.addAttribute("patientId", patient.getId());  
-        model.addAttribute("reservationDTO", reservationDTO);
+
+        ShowPatientDTO patientDTO = new ShowPatientDTO();
+        patientDTO.setId(patient.getId());
+        patientDTO.setNama(patient.getName());
+        patientDTO.setNIK(patient.getNIK());
+        patientDTO.setGender(patient.getGender());
+        patientDTO.setBirthDate(patient.getBirthDate());
+        patientDTO.setEmail(patient.getEmail());
+
+        model.addAttribute("patientDTO", patientDTO);
         return "patient-found";
     }
-
+    
 
    @GetMapping("/reservations/validateDate/{patientId}")
     public String validateDateAndFindRooms(@PathVariable ("patientId") UUID patientId,Model model) {
-        var reservationDTO = new AddReservationDTO();
+        
+        Patient patient = patientService.getPatientByID(patientId);
+        model.addAttribute("patientName", patient.getName());
+        model.addAttribute("patientId", patientId);
+        model.addAttribute("nurseList", nurseService.getAllNurses());
+        
+        AddReservationDTO reservationDTO = new AddReservationDTO();
         reservationDTO.setPatientId(patientId);
-        
-        
-        List<Nurse> nurses = nurseService.getAllNurses();
-        // List<Room> availableRooms = roomService.getAllRoom();
-
-
-
-        // model.addAttribute("availableRooms", availableRooms);
-        model.addAttribute("nurses", nurses);
         model.addAttribute("reservationDTO", reservationDTO);
-
-        
-
         
         return "find-room";
     }
 
     @PostMapping("/reservations/validateDate/{patientId}")
-    public String processRoomSelection(@PathVariable("patientId") UUID patientId, @ModelAttribute AddReservationDTO reservationDTO, Model model) {
-        List<Nurse> nurses = nurseService.getAllNurses();
-        reservationDTO.setPatientId(patientId);
+    public String processRoomSelection(@PathVariable("patientId") UUID patientId, @ModelAttribute("reservationDTO") AddReservationDTO reservationDTO, Model model){
+        Patient patient = patientService.getPatientByID(patientId);
+        model.addAttribute("patientName", patient.getName());
+        model.addAttribute("patientId", patient.getId());
+        model.addAttribute("nurseList", nurseService.getAllNurses());
 
         if (reservationDTO.getDateIn().compareTo(reservationDTO.getDateOut()) > 0) {
+            model.addAttribute("isDateChoosed", false);
             model.addAttribute("errorMessage", "Tanggal masuk harus kurang atau sama dengan tanggal keluar.");
-            model.addAttribute("nurses", nurses);
-            return "find-room"; 
+            return "find-room";
         }
-
-        List<Room> availableRooms = roomService.getAvailableRooms(reservationDTO.getDateIn(), reservationDTO.getDateOut());
-
-        if (availableRooms.isEmpty()) {
-            model.addAttribute("errorMessage", "Tidak ada ruangan tersedia untuk tanggal tersebut.");
-            model.addAttribute("nurses", nurses);
-            return "find-room"; 
-        }
-
-        model.addAttribute("availableRooms", availableRooms);
-        model.addAttribute("reservationDTO", reservationDTO); 
-        model.addAttribute("dateIn", reservationDTO.getDateIn());
-        model.addAttribute("dateOut", reservationDTO.getDateOut());
         
-        return "find-room"; 
+        List<Room> availableRooms = roomService.getAvailableRooms(reservationDTO.getDateIn(), reservationDTO.getDateOut());
+        model.addAttribute("roomList", availableRooms );
+        model.addAttribute("isDateChoosed", true);
+        return "find-room";
+
     }
 
+    // @PostMapping("/reservations/validateDate/{patientId}")
+    // public String processRoomSelection(@PathVariable("patientId") UUID patientId, @ModelAttribute AddReservationDTO reservationDTO, Model model) {
+    //     List<Nurse> nurses = nurseService.getAllNurses();
+    //     reservationDTO.setPatientId(patientId);
 
+    //     if (reservationDTO.getDateIn().compareTo(reservationDTO.getDateOut()) > 0) {
+    //         model.addAttribute("errorMessage", "Tanggal masuk harus kurang atau sama dengan tanggal keluar.");
+    //         model.addAttribute("nurses", nurses);
+    //         return "find-room"; 
+    //     }
 
-    @GetMapping("/reservations/addFacilities/{patientId}")
-    public String addFacilitiesPage(
-            @PathVariable("patientId") UUID patientId,
-            @RequestParam("roomId") String roomId, 
-            @RequestParam("dateIn") @DateTimeFormat(pattern = "yyyy-MM-dd") Date dateIn,
-            @RequestParam("dateOut") @DateTimeFormat(pattern = "yyyy-MM-dd") Date dateOut,
-            Model model, 
-            @ModelAttribute AddReservationDTO reservationDTO) {
+    //     List<Room> availableRooms = roomService.getAvailableRooms(reservationDTO.getDateIn(), reservationDTO.getDateOut());
 
-        Room selectedRoom = roomService.getRoomByID(roomId);
-        reservationDTO.setRoomId(roomId);
-        reservationDTO.setDateIn(dateIn);
-        reservationDTO.setDateOut(dateOut);
-        reservationDTO.setRoomName(selectedRoom.getName());
-        reservationDTO.setPatientId(patientId);
+    //     if (availableRooms.isEmpty()) {
+    //         model.addAttribute("errorMessage", "Tidak ada ruangan tersedia untuk tanggal tersebut.");
+    //         model.addAttribute("nurses", nurses);
+    //         return "find-room"; 
+    //     }
 
+    //     model.addAttribute("availableRooms", availableRooms);
+    //     model.addAttribute("reservationDTO", reservationDTO); 
+    //     model.addAttribute("dateIn", reservationDTO.getDateIn());
+    //     model.addAttribute("dateOut", reservationDTO.getDateOut());
+        
+    //     return "find-room"; 
+    // }
+
+    @GetMapping("/reservations/addFacilities")
+    public String addFacilitiesPage(@Valid @ModelAttribute AddReservationDTO reservationDTO, Model model) {
         List<Facility> facilities = facilityService.getAllFacilities();
-
-        model.addAttribute("room", selectedRoom);
         model.addAttribute("facilities", facilities);
         model.addAttribute("reservationDTO", reservationDTO);
+        return "add-facilities";
+    }
+
+    // @GetMapping("/reservations/addFacilities/{patientId}")
+    // public String addFacilitiesPage(
+    //         @PathVariable("patientId") UUID patientId,
+    //         @RequestParam("roomId") String roomId, 
+    //         @RequestParam("dateIn") @DateTimeFormat(pattern = "yyyy-MM-dd") Date dateIn,
+    //         @RequestParam("dateOut") @DateTimeFormat(pattern = "yyyy-MM-dd") Date dateOut,
+    //         Model model, 
+    //         @ModelAttribute AddReservationDTO reservationDTO) {
+
+    //     Room selectedRoom = roomService.getRoomByID(roomId);
+    //     reservationDTO.setRoomId(roomId);
+    //     reservationDTO.setDateIn(dateIn);
+    //     reservationDTO.setDateOut(dateOut);
+    //     reservationDTO.setRoomName(selectedRoom.getName());
+    //     reservationDTO.setPatientId(patientId);
+
+    //     List<Facility> facilities = facilityService.getAllFacilities();
+
+    //     model.addAttribute("room", selectedRoom);
+    //     model.addAttribute("facilities", facilities);
+    //     model.addAttribute("reservationDTO", reservationDTO);
         
 
 
-        return "add-facilities";
-    }
+    //     return "add-facilities";
+    // }
 
 
     @PostMapping("/reservations/addFacilities/{patientId}")

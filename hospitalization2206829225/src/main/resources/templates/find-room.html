@@ -1,64 +1,115 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
-    <title>Find Available Room</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Patient Room</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <head th:replace="~{fragments/common :: css}"></head>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
 </head>
 <body>
     <nav th:replace="~{fragments/navbar :: navbar}"></nav>
     <div class="container mt-5">
-        <h2 class="text-center">Step 2 of 3: Find Room for <span th:text="${patientName}"></span></h2>
+        <div class="text-center mb-4">
+            <h3>Step 2 of 3</h3>
+            <h3>Find Room for <span th:text="${patientName}">Patient Name</span></h3>
+        </div>
+        <div class="card mx-auto" style="width: 40rem;">
+            <div class="card-body">
+                <!-- Main Form Container -->
+                <div id="formContainer">
+                    <!-- Search Form -->
+                    <form id="searchForm" th:action="@{/reservations/validateDate/{patientId}(patientId=${patientId})}" 
+                          th:object="${reservationDTO}" 
+                          method="post">
+                        
+                        <!-- Assigned Nurse Dropdown -->
+                        <div class="mb-3">
+                            <select id="nurse" class="form-select" th:field="*{assignedNurseId}">
+                                <option value="" disabled selected>Select a nurse...</option>
+                                <option th:each="nurseOption : ${nurseList}" 
+                                        th:value="${nurseOption.id}" 
+                                        th:text="${nurseOption.name}">
+                                </option>
+                            </select>
+                            <div class="text-danger" th:if="${#fields.hasErrors('assignedNurseId')}" th:errors="*{assignedNurseId}"></div>
+                        </div>
 
-        <form th:action="@{|/reservations/validateDate/${reservationDTO.patientId}|}" th:object="${reservationDTO}" method="post" id="searchForm">
-            <div class="mb-3">
-                <label for="assignedNurse" class="form-label">Assigned Nurse</label>
-                <select id="assignedNurse" name="assignedNurseId" class="form-select" th:field="*{assignedNurseId}" >
-                    <option th:each="nurse : ${nurses}" th:value="${nurse.id}" th:text="${nurse.name}">Select Nurse</option>
-                </select>                
+                        <!-- Reservation Date In and Out -->
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label for="dateIn" class="form-label">Reservation Date In</label>
+                                <input type="date" id="dateIn" class="form-control" 
+                                       th:field="*{dateIn}" 
+                                       th:value="${#dates.format(reservationDTO.dateIn, 'yyyy-MM-dd')}" required>
+                                <div class="text-danger" th:if="${#fields.hasErrors('dateIn')}" th:errors="*{dateIn}"></div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="dateOut" class="form-label">Reservation Date Out</label>
+                                <input type="date" id="dateOut" class="form-control" 
+                                       th:field="*{dateOut}" 
+                                       th:value="${#dates.format(reservationDTO.dateOut, 'yyyy-MM-dd')}" required>
+                                <div class="text-danger" th:if="${#fields.hasErrors('dateOut')}" th:errors="*{dateOut}"></div>
+                            </div>
+                            <div class="text-danger" th:if="${dateMsg != null}" th:text="${dateMsg}"></div>
+                        </div>
+                        <div class="text-center mb-3">
+                            <button type="submit" class="btn btn-primary">Search Available Rooms</button>
+                        </div>
+                    </form>
+                    <form id="continueForm" th:action="@{/reservations/addFacilities/{patientId}(patientId=${patientId})}" 
+                          th:object="${reservationDTO}" 
+                          method="post"
+                          th:if="${isDateChoosed}">
+                        
+                        <input type="hidden" name="assignedNurseId" th:value="${reservationDTO.assignedNurseId}">
+                        <input type="hidden" name="dateIn" th:value="${#dates.format(reservationDTO.dateIn, 'yyyy-MM-dd')}">
+                        <input type="hidden" name="dateOut" th:value="${#dates.format(reservationDTO.dateOut, 'yyyy-MM-dd')}">
+                        <input type="hidden" name="patientId" th:value="${reservationDTO.patientId}">
+
+                        <div th:if="${#lists.size(roomList) > 0}" class="mt-4">
+                            <h5 class="mb-3">Available Rooms:</h5>
+                            <div class="mb-3">
+                                <select id="room" class="form-select" th:field="*{roomId}">
+                                    <option value="" disabled selected>Select a room...</option>
+                                    <option th:each="roomOption, iterStat : ${roomList}" 
+                                            th:value="${roomOption.id}" 
+                                            th:text="${roomOption.name} + ' (Rp' + ${roomOption.pricePerDay} + '/day, ' + ${roomOption.maxCapacity} + ' Quota Available, Max ' + ${roomOption.maxCapacity} + ' Pax)'">
+                                    </option>
+                                </select>
+                                <div class="text-danger" th:if="${#fields.hasErrors('roomId')}" th:errors="*{roomId}"></div>
+                            </div>
+                        </div>
+                        <div th:if="${isDateChoosed && #lists.size(roomList) == 0}" class="alert alert-warning mt-3">
+                            <p class="mb-0">No rooms available for the selected dates.</p>
+                        </div>
+
+                        <div id="roomMsg" class="text-danger mb-3"></div>
+                        <div class="d-flex justify-content-between mt-4">
+                            <button th:if="${#lists.size(roomList) > 0}" type="submit" class="btn btn-primary">Continue</button>
+                            <button type="button" class="btn btn-danger" onclick="window.history.back()">Back</button>
+                        </div>
+                    </form>
+                </div>
+
+                <script>
+                    document.getElementById("searchForm").onsubmit = function() {
+                        var dateIn = document.getElementById('reservationDateIn').value;
+                        var dateOut = document.getElementById('reservationDateOut').value;
+                
+                        if (dateIn && dateOut && dateIn > dateOut) {
+                            alert("Tanggal masuk harus kurang atau sama dengan tanggal keluar.");
+                            return false; 
+                        }
+                        return true; 
+                    };
+                </script>
             </div>
-        
-            <div class="mb-3">
-                <label for="reservationDateIn" class="form-label">Reservation Date In</label>
-                <input type="date" th:field="*{dateIn}" class="form-control" id="reservationDateIn" required>
-            </div>
-        
-            <div class="mb-3">
-                <label for="reservationDateOut" class="form-label">Reservation Date Out</label>
-                <input type="date" th:field="*{dateOut}" class="form-control" id="reservationDateOut" required>
-            </div>
-        
-            <div class="mt-4" th:if="${availableRooms != null}">
-                <h3>Available Rooms</h3>
-                <div class="mb-3">
-                    <label for="roomId" class="form-label">Room</label>
-                    <select id="roomId" name="roomId" class="form-select" required>
-                        <option value="">Select a Room</option>
-                        <option th:each="room : ${availableRooms}" th:value="${room.id}" th:text="${room.name}">
-                        </option>
-                    </select>                    
-                </div> 
-            </div>
-        
-            <button type="submit" class="btn btn-primary" id="searchButton">Search</button>
-            <a href="/" class="btn btn-danger">Cancel</a>
-        </form>
-                  
+        </div>
     </div>
 
-    <script>
-        document.getElementById("searchForm").onsubmit = function() {
-            var dateIn = document.getElementById('reservationDateIn').value;
-            var dateOut = document.getElementById('reservationDateOut').value;
-    
-            if (dateIn && dateOut && dateIn > dateOut) {
-                alert("Tanggal masuk harus kurang atau sama dengan tanggal keluar.");
-                return false; 
-            }
-            return true; 
-        };
-    </script>
-    
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+    <head th:replace="~{fragments/common :: js}"></head>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
