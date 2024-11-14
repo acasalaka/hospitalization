@@ -3,8 +3,11 @@ package apap.ti.hospitalization2206829225.restservice;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -12,7 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import apap.ti.hospitalization2206829225.model.Facility;
-import apap.ti.hospitalization2206829225.model.Nurse;
 import apap.ti.hospitalization2206829225.model.Patient;
 import apap.ti.hospitalization2206829225.model.Reservation;
 import apap.ti.hospitalization2206829225.model.Room;
@@ -38,10 +40,8 @@ public class ReservationRestServiceImpl implements ReservationRestService {
     FacilityDb facilityDb;
 
     @Autowired
-    private PatientDb patientDb;
+    PatientDb patientDb;
 
-    @Autowired
-    private NurseDb nurseDb;
 
     @Autowired
     private RoomDb roomDb;
@@ -90,8 +90,10 @@ public class ReservationRestServiceImpl implements ReservationRestService {
         reservationResponseDTO.setTotalFee(reservation.getTotalFee());
         reservationResponseDTO.setAssignedNurse(reservation.getAssignedNurse());
         reservationResponseDTO.setRoomId(reservation.getRoomId());
-        reservationResponseDTO.setCreatedAt(new java.sql.Timestamp(reservation.getCreatedAt().getTime()));
-        reservationResponseDTO.setUpdatedAt(new java.sql.Timestamp(reservation.getUpdatedAt().getTime()));
+        // reservationResponseDTO.setCreatedAt(new java.sql.Timestamp(reservation.getCreatedAt().getTime()));
+        // reservationResponseDTO.setUpdatedAt(new java.sql.Timestamp(reservation.getUpdatedAt().getTime()));
+        reservationResponseDTO.setCreatedAt(reservation.getCreatedAt());
+        reservationResponseDTO.setUpdatedAt(reservation.getUpdatedAt());
 
         
 
@@ -121,86 +123,77 @@ public class ReservationRestServiceImpl implements ReservationRestService {
         return null;
     }
 
-    // @Override
-    // public ReservationResponseDTO addReservation(AddReservationRequestRestDTO reservationDTO) {
-    //     if (reservationDTO.getFacilities() == null) {
-    //         reservationDTO.setFacilities(new ArrayList<>());
-    //     }
-
-    //     Reservation newReservation = new Reservation();
-    //     newReservation.setPatientId(reservationDTO.getPatientId());
-    //     newReservation.setDateIn(reservationDTO.getDateIn());
-    //     newReservation.setDateOut(reservationDTO.getDateOut());
-    //     newReservation.setAssignedNurse(reservationDTO.getAssignedNurse());
-    //     newReservation.setRoomId(reservationDTO.getRoomId());
-
-    //     List<Facility> facilities = new ArrayList<>();
-    //     for (UUID facilityId : reservationDTO.getFacilities()) {
-    //        Facility facility = facilityDb.findById(facilityId).orElse(null);
-    //        if(facility != null) {
-    //            facilities.add(facility);
-    //        }
-    //     }
-    //     newReservation.setFacilities(facilities);
-    //     reservationDb.save(newReservation);
-    //     return reservationToReservationResponseDTO(newReservation);
-    // }
-
-
-    //=======================================================================================================
-
-
-    // @Override
-    // public ReservationResponseDTO addReservation(AddReservationRequestRestDTO reservationDTO) {
-    //     // UUID assignedNurseId = getLoggedInNurseId();
-    //     // if (assignedNurseId == null) {
-    //     //     throw new IllegalStateException("Only users with Nurse role can create reservations.");
-    //     // }
-
-    //     // Validasi appointment, room, facilities, dll seperti sebelumnya...
-    //     if (reservationDTO.getFacilities() == null) {
-    //                 reservationDTO.setFacilities(new ArrayList<>());
-    //             }
-
-    //     // Mengambil NIK pasien berdasarkan patientId
-    //     Patient patient = patientDb.findById(reservationDTO.getPatientId()).orElseThrow(() ->
-    //             new IllegalArgumentException("Patient not found"));
-
-    //     String patientNik = patient.getNIK();
+    @Override
+    public ReservationResponseDTO addReservation(AddReservationRequestRestDTO reservationDTO) {
+        // Step 1: Validate Room Capacity
+        Room room = roomDb.findById(reservationDTO.getRoomId())
+                .orElseThrow(() -> new IllegalArgumentException("Room with ID " + reservationDTO.getRoomId() + " not found"));
         
-    //     // Menghitung total reservasi untuk keperluan ID
-    //     int totalReservations = (int) reservationDb.count();
+        long existingReservations = reservationDb.countByRoomIdAndDateRange(reservationDTO.getRoomId(), reservationDTO.getDateIn(), reservationDTO.getDateOut());
+        if (existingReservations >= room.getMaxCapacity()) {
+            throw new IllegalStateException("Room is fully booked for the selected date range");
+        }
 
-    //     // Menghasilkan ID reservasi
-    //     String reservationId = formatReservationID(reservationDTO.getDateIn(), reservationDTO.getDateOut(), patientNik, totalReservations);
+        // Step 2: Validate Appointment ID (If Provided)
+        if (reservationDTO.getAppointmentId() != null && !mockCheckAppointment(reservationDTO.getAppointmentId())) {
+            throw new IllegalArgumentException("Appointment with ID " + reservationDTO.getAppointmentId() + " is not available or does not exist");
+        }
 
-    //     // Pastikan ID unik dengan pengecekan
-    //     while (reservationDb.existsById(reservationId)) {
-    //         totalReservations += 1;
-    //         reservationId = formatReservationID(reservationDTO.getDateIn(), reservationDTO.getDateOut(), patientNik, totalReservations);
-    //     }
+        // Step 3: Validate Facilities
+        List<UUID> facilityIds = reservationDTO.getFacilities();
+        if (facilityIds != null) {
+            Set<UUID> uniqueFacilities = new HashSet<>(facilityIds);
+            if (uniqueFacilities.size() != facilityIds.size()) {
+                throw new IllegalArgumentException("Duplicate facility IDs are not allowed");
+            }
 
-    //     // Buat reservasi baru dengan ID yang dihasilkan
-    //     Reservation newReservation = new Reservation();
-    //     newReservation.setId(reservationId);
-    //     newReservation.setPatientId(reservationDTO.getPatientId());
-    //     newReservation.setDateIn(reservationDTO.getDateIn());
-    //     newReservation.setDateOut(reservationDTO.getDateOut());
-    //     newReservation.setTotalFee(reservationDTO.getTotalFee());
-    //     newReservation.setAssignedNurse(assignedNurseId);
-    //     newReservation.setRoomId(reservationDTO.getRoomId());
-    //     // newReservation.setFacilities(validFacilities);
+            List<UUID> missingFacilities = new ArrayList<>();
+            for (UUID facilityId : facilityIds) {
+                if (!facilityDb.existsById(facilityId)) {
+                    missingFacilities.add(facilityId);
+                }
+            }
+            if (!missingFacilities.isEmpty()) {
+                throw new IllegalArgumentException("The following facilities do not exist: " + missingFacilities);
+            }
+        }
 
-    //     // Jika appointmentId null, buat data Bill di Bill Service
-    //     // if (reservationDTO.getAppointmentId() == null) {
-    //     //     createBillForReservation(newReservation);
-    //     // }
+        Patient patient = patientDb.findById(reservationDTO.getPatientId())
+                .orElseThrow(() -> new IllegalArgumentException("Patient not found with ID: " + reservationDTO.getPatientId()));
+        
+        // Mock Assigned Nurse ID, assuming nurse session is available
+        UUID assignedNurseId = getMockNurseIdFromSession();
+        if (assignedNurseId == null) {
+            throw new IllegalArgumentException("Only users with Nurse role can create a reservation");
+        }
 
-    //     reservationDb.save(newReservation);
-    //     return reservationToReservationResponseDTO(newReservation);
-    // }
+        int totalReservations = reservationDb.countAllReservations();
+        String reservationID = formatReservationID(reservationDTO.getDateIn(), reservationDTO.getDateOut(), patient.getNIK(), totalReservations);
 
-    // =======================================================================================================
+        double totalFee = room.getPricePerDay() * getDateDifference(reservationDTO.getDateIn(), reservationDTO.getDateOut());
+
+        Reservation reservation = new Reservation();
+        reservation.setId(reservationID);
+        reservation.setDateIn(reservationDTO.getDateIn());
+        reservation.setDateOut(reservationDTO.getDateOut());
+        reservation.setTotalFee(totalFee);
+        reservation.setPatientId(patient.getId());
+        reservation.setAssignedNurse(assignedNurseId);
+        reservation.setRoomId(reservationDTO.getRoomId());
+        reservation.setIsDeleted(false);
+
+        reservationDb.save(reservation);
+
+        return reservationToReservationResponseDTO(reservation);
+    }
+
+    private boolean mockCheckAppointment(String appointmentId) {
+        return appointmentId.length() == 8; 
+    }
+    private UUID getMockNurseIdFromSession() {
+        return UUID.fromString("e64fc207-19c4-4b79-8dda-a417595f657f"); 
+    }
+    
 
     @Override
     public ReservationResponseDTO updateReservation(String id, UpdateReservationRequestRestDTO reservationDTO) {
@@ -243,43 +236,51 @@ public class ReservationRestServiceImpl implements ReservationRestService {
     
 
 
-    @Override
-    public ReservationResponseDTO updateFacilities(String reservationId, List<UUID> listOfFacilities) {
-        Reservation reservation = reservationDb.findById(reservationId).orElse(null);
-        
-        if (reservation == null) {
-            throw new IllegalArgumentException("Reservation not found");
-        }
-        
-        // Validasi tanggal: hanya bisa update jika belum masuk tanggal dateOut
-        if (reservation.getDateOut().before(new Date())) {
-            throw new IllegalStateException("Cannot update facilities for reservation that has already ended (past dateOut)");
-        }
-        
-        // Pengecekan fasilitas yang tidak ditemukan
-        List<UUID> notFoundFacilities = new ArrayList<>();
-        List<Facility> validFacilities = new ArrayList<>();
-        for (UUID facilityId : listOfFacilities) {
-            Facility facility = facilityDb.findById(facilityId).orElse(null);
-            if (facility != null) {
-                validFacilities.add(facility);
-            } else {
-                notFoundFacilities.add(facilityId);
-            }
-        }
+    // @Override
+    // public ReservationResponseDTO updateFacilities(String reservationId, List<UUID> listOfFacilities) throws Exception {
+    //     Reservation reservation = reservationDb.findById(reservationId).orElse(null);
 
-        // Jika ada fasilitas yang tidak ditemukan, kembalikan ID-ID tersebut di response
-        if (!notFoundFacilities.isEmpty()) {
-            throw new IllegalArgumentException("Facilities with ID " + notFoundFacilities + " not found");
-        }
+    //     // Validasi: Cek apakah reservasi ditemukan
+    //     if (reservation == null) {
+    //         throw new IllegalArgumentException("Reservation with ID " + reservationId + " not found!");
+    //     }
 
-        // Update facilities jika semua fasilitas valid
-        reservation.setFacilities(validFacilities);
-        reservation.setUpdatedAt(new java.sql.Timestamp(System.currentTimeMillis()));
-        reservationDb.save(reservation);
+    //     // Validasi: Cek apakah dateOut belum tercapai
+    //     if (reservation.getDateOut().before(new Date())) {
+    //         throw new IllegalStateException("Facilities cannot be updated as the reservation has passed the check-out date.");
+    //     }
 
-        return reservationToReservationResponseDTO(reservation);
-    }
+    //     // Validasi: Cek apakah semua fasilitas yang di-request tersedia
+    //     List<UUID> unavailableFacilityIds = new ArrayList<>();
+    //     List<Facility> validFacilities = new ArrayList<>();
+
+    //     for (UUID facilityId : listOfFacilities) {
+    //         Optional<Facility> facilityOpt = facilityDb.findById(facilityId);
+    //         if (facilityOpt.isPresent()) {
+    //             validFacilities.add(facilityOpt.get());
+    //         } else {
+    //             unavailableFacilityIds.add(facilityId);
+    //         }
+    //     }
+
+    //     // Jika ada fasilitas yang tidak ditemukan, kembalikan error dengan daftar ID fasilitas yang tidak tersedia
+    //     if (!unavailableFacilityIds.isEmpty()) {
+    //         throw new Exception("The following facility IDs were not found: " + unavailableFacilityIds);
+    //     }
+
+    //     // Validasi: Cek duplikasi ID fasilitas dalam payload
+    //     Set<UUID> uniqueFacilities = new HashSet<>(listOfFacilities);
+    //     if (uniqueFacilities.size() < listOfFacilities.size()) {
+    //         throw new IllegalStateException("Duplicate facility IDs found in the request.");
+    //     }
+
+    //     // Update fasilitas reservasi
+    //     reservation.setFacilities(validFacilities);
+    //     reservationDb.save(reservation);
+
+    //     // Konversi ke DTO untuk respon
+    //     return reservationToReservationResponseDTO(reservation);
+    // }
 
     public String formatReservationID(Date dateIn, Date dateOut, String patientNik, int totalReservations) {
         StringBuilder reservationID = new StringBuilder("RES");
@@ -306,30 +307,7 @@ public class ReservationRestServiceImpl implements ReservationRestService {
         return TimeUnit.DAYS.convert(diffInMillis, TimeUnit.MILLISECONDS) + 1;
     }
 
-    @Override
-    public ReservationResponseDTO addReservation(AddReservationRequestRestDTO reservationDTO) {
-        if (reservationDTO.getFacilities() == null) {
-            reservationDTO.setFacilities(new ArrayList<>());
-        }
-
-        Reservation newReservation = new Reservation();
-        newReservation.setPatientId(reservationDTO.getPatientId());
-        newReservation.setDateIn(reservationDTO.getDateIn());
-        newReservation.setDateOut(reservationDTO.getDateOut());
-        newReservation.setAssignedNurse(reservationDTO.getAssignedNurse());
-        newReservation.setRoomId(reservationDTO.getRoomId());
-
-        // List<Facility> facilities = new ArrayList<>();
-        // for (Long facilityId : reservationDTO.getFacilities()) {
-        //     Facility facility = facilityDb.findById(facilityId).orElse(null);
-        //     if(facility != null) {
-        //         facilities.add(facility);
-        //     }
-        // }
-        // newReservation.setFacilities(facilities);
-        reservationDb.save(newReservation);
-        return reservationToReservationResponseDTO(newReservation);
-    }
+    
 
 
 } 

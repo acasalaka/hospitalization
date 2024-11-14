@@ -4,14 +4,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
-import apap.ti.hospitalization2206829225.model.Facility;
 import jakarta.annotation.Nullable;
-import jakarta.persistence.Column;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
 import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
@@ -33,8 +27,8 @@ public class AddReservationRequestRestDTO{
     @NotEmpty(message = "Patient ID tidak boleh kosong")
     private UUID patientId;
 
-    @NotEmpty(message = "Nurse tidak boleh kosong")
-    private UUID assignedNurse;
+    // @NotEmpty(message = "Nurse tidak boleh kosong")
+    // private UUID assignedNurse;
     
     @NotEmpty(message = "ID Ruangan tidak boleh kosong")
     private String roomId;

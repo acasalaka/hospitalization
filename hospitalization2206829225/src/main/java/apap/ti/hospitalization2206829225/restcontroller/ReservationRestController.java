@@ -170,41 +170,41 @@ public class ReservationRestController {
         }
     }
 
-    @PutMapping("/{id}/update-facilities")
-    public ResponseEntity<?> updateFacilities(
-            @PathVariable("id") String id,
-            @RequestBody List<UUID> listOfFacilities) {
-        var baseResponseDTO = new BaseResponseDTO<>();
+    // @PutMapping("/{id}/update-facilities")
+    // public ResponseEntity<?> updateFacilities(
+    //         @PathVariable("id") String id,
+    //         @RequestBody List<UUID> listOfFacilities) {
+    //     var baseResponseDTO = new BaseResponseDTO<>();
 
-        try {
-            ReservationResponseDTO reservationResponse = reservationService.updateFacilities(id, listOfFacilities);
-            baseResponseDTO.setStatus(HttpStatus.OK.value());
-            baseResponseDTO.setMessage("Facilities updated successfully");
-            baseResponseDTO.setData(reservationResponse);
-            baseResponseDTO.setTimestamp(new Date());
-            return new ResponseEntity<>(baseResponseDTO, HttpStatus.OK);
+    //     try {
+    //         ReservationResponseDTO reservationResponse = reservationService.updateFacilities(id, listOfFacilities);
+    //         baseResponseDTO.setStatus(HttpStatus.OK.value());
+    //         baseResponseDTO.setMessage("Facilities updated successfully");
+    //         baseResponseDTO.setData(reservationResponse);
+    //         baseResponseDTO.setTimestamp(new Date());
+    //         return new ResponseEntity<>(baseResponseDTO, HttpStatus.OK);
 
-        } catch (IllegalArgumentException e) {
-            baseResponseDTO.setStatus(HttpStatus.NOT_FOUND.value());
-            baseResponseDTO.setMessage("Reservation not found");
-            baseResponseDTO.setData(null);
-            baseResponseDTO.setTimestamp(new Date());
-            return new ResponseEntity<>(baseResponseDTO, HttpStatus.NOT_FOUND);
+    //     } catch (IllegalArgumentException e) {
+    //         baseResponseDTO.setStatus(HttpStatus.NOT_FOUND.value());
+    //         baseResponseDTO.setMessage("Reservation not found");
+    //         baseResponseDTO.setData(null);
+    //         baseResponseDTO.setTimestamp(new Date());
+    //         return new ResponseEntity<>(baseResponseDTO, HttpStatus.NOT_FOUND);
 
-        } catch (IllegalStateException e) {
-            baseResponseDTO.setStatus(HttpStatus.BAD_REQUEST.value());
-            baseResponseDTO.setMessage(e.getMessage());
-            baseResponseDTO.setData(null);
-            baseResponseDTO.setTimestamp(new Date());
-            return new ResponseEntity<>(baseResponseDTO, HttpStatus.BAD_REQUEST);
-        } catch (Exception e) {
-            baseResponseDTO.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
-            baseResponseDTO.setMessage("Failed to update facilities");
-            baseResponseDTO.setData(null);
-            baseResponseDTO.setTimestamp(new Date());
-            return new ResponseEntity<>(baseResponseDTO, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
+    //     } catch (IllegalStateException e) {
+    //         baseResponseDTO.setStatus(HttpStatus.BAD_REQUEST.value());
+    //         baseResponseDTO.setMessage(e.getMessage());
+    //         baseResponseDTO.setData(null);
+    //         baseResponseDTO.setTimestamp(new Date());
+    //         return new ResponseEntity<>(baseResponseDTO, HttpStatus.BAD_REQUEST);
+    //     } catch (Exception e) {
+    //         baseResponseDTO.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+    //         baseResponseDTO.setMessage("Failed to update facilities");
+    //         baseResponseDTO.setData(null);
+    //         baseResponseDTO.setTimestamp(new Date());
+    //         return new ResponseEntity<>(baseResponseDTO, HttpStatus.INTERNAL_SERVER_ERROR);
+    //     }
+    // }
 
 
 }

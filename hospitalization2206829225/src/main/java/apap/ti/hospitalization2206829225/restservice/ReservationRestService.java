@@ -16,7 +16,7 @@ public interface ReservationRestService {
     ReservationResponseDTO addReservation(AddReservationRequestRestDTO reservationDTO);
     void deleteReservation(String id);
     ReservationResponseDTO updateReservation(String id, UpdateReservationRequestRestDTO reservationDTO);
-    ReservationResponseDTO updateFacilities(String reservationId, List<UUID> listOfFacilities);
+    // ReservationResponseDTO updateFacilities(String reservationId, List<UUID> listOfFacilities) throws Exception;
     String formatReservationID(Date dateIn, Date dateOut, String patientNik, int totalReservations);
     long getDateDifference(Date dateIn, Date dateOut);
     List<ReservationResponseDTO> getReservationsByPatientId(UUID patientId);

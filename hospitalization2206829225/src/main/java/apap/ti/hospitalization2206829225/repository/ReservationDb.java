@@ -25,6 +25,13 @@ public interface ReservationDb extends JpaRepository<Reservation, String>  {
        @Query("SELECT r FROM Reservation r WHERE r.isDeleted = false")
        List<Reservation> findAllActiveReservations();
        
+       @Query("SELECT COUNT(r) FROM Reservation r")
+       int countAllReservations();
 
+
+       @Query("SELECT COUNT(r) FROM Reservation r WHERE r.roomId = :roomId AND " +
+           "((r.dateIn BETWEEN :dateIn AND :dateOut) OR (r.dateOut BETWEEN :dateIn AND :dateOut) OR " +
+           "(r.dateIn <= :dateIn AND r.dateOut >= :dateOut))")
+       long countByRoomIdAndDateRange(@Param("roomId") String roomId, @Param("dateIn") Date dateIn, @Param("dateOut") Date dateOut);
        
 }
