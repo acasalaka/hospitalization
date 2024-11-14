@@ -15,8 +15,12 @@ import lombok.Setter;
 public class ReservationResponseDTO {
     private String id;
     private UUID patientId;
+
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private Date dateIn;
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private Date dateOut;
+    
     private double totalFee;
     private UUID assignedNurse;
     private String roomId;

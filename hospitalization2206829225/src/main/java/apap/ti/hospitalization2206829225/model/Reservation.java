@@ -7,6 +7,11 @@ import lombok.Setter;
 import jakarta.persistence.*;
 import java.util.List;
 import java.util.UUID;
+
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.SQLRestriction;
+import org.hibernate.annotations.UpdateTimestamp;
+
 import java.util.Date;
 
 
@@ -41,15 +46,22 @@ public class Reservation {
     private String roomId;
 
     @ManyToMany
-    @JoinTable(
-        name = "reservation_facility",
-        joinColumns = @JoinColumn(name = "reservation_id"),
+    @JoinTable(name = "reservation_facility",joinColumns = @JoinColumn(name = "reservation_id"),
         inverseJoinColumns = @JoinColumn(name = "facility_id")
     )
+    @SQLRestriction("is_deleted=FALSE")
     private List<Facility> facilities;
 
+    @CreationTimestamp
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "created_at", updatable = false, nullable = false)
     private Date createdAt;
+
+    @UpdateTimestamp
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "updated_at", nullable = false)
     private Date updatedAt;
 
+    @Column(name = "is_deleted")
     private Boolean isDeleted = false;
 }

@@ -243,7 +243,7 @@ public class reservationController {
         reservation.setDateIn(reservationDTO.getDateIn());
         reservation.setDateOut(reservationDTO.getDateOut());
         reservation.setAssignedNurse(reservationDTO.getAssignedNurseId());
-        reservation.setPatientId(patientId);
+        reservation.setPatientId(reservationDTO.getPatientId());
         reservation.setTotalFee(totalFee);
         reservation.setFacilities(selectedFacilities);
 
@@ -277,7 +277,7 @@ public class reservationController {
         Map<String, String> patientNames = new HashMap<>();
 
         for (Reservation reservation : listReservation) {
-            Room room = roomService.getRoomByID(reservation.getRoomId());
+            Room room = roomService.getRoomByID(reservation.getId());
             Patient patient = patientService.getPatientByID(reservation.getPatientId());
 
             roomNames.put(reservation.getId(), room.getName());

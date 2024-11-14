@@ -80,8 +80,8 @@ public class Hospitalization2206829225Application {
                 room.setDescription(faker.lorem().sentence(10));
                 room.setMaxCapacity(faker.number().numberBetween(1, 5));
                 room.setPricePerDay(faker.number().randomDouble(2, 200000, 1000000));
-                room.setCreatedDate(faker.date().past(365, TimeUnit.DAYS).toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDateTime());
-                room.setUpdatedDate(faker.date().past(30, TimeUnit.DAYS).toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDateTime());
+                room.setCreatedAt(Date.from(faker.date().past(365, TimeUnit.DAYS).toInstant()));
+                room.setUpdatedAt(Date.from(faker.date().past(30, TimeUnit.DAYS).toInstant()));
 
                 roomService.saveRoom(room);
                 roomList.add(room);
@@ -109,8 +109,8 @@ public class Hospitalization2206829225Application {
             }
             for (int i = 0; i < 12; i++) {
                 var reservation = new Reservation();
-                var dateIn = faker.date().past(90, TimeUnit.DAYS);
-                var dateOut = faker.date().future(10, TimeUnit.DAYS, dateIn);
+                var dateIn = faker.date().future(5, TimeUnit.DAYS);
+                var dateOut = faker.date().future(2000, TimeUnit.DAYS, dateIn);
 
                 reservation.setId("RES" + (i + 1));
                 reservation.setDateIn(dateIn);
