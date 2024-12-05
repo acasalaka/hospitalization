@@ -40,7 +40,7 @@ public class RoomRestController {
 
         return new ResponseEntity<>(baseResponseDTO, HttpStatus.OK);
     }
-    @GetMapping()
+    @GetMapping("/viewall")
     public ResponseEntity<?> getAllRooms(){
         var baseResponseDTO = new BaseResponseDTO<List<RoomResponseDTO>>();
         List<RoomResponseDTO> rommList = roomService.getAllRoom();

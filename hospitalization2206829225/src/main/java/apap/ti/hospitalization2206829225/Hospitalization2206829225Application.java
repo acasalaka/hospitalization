@@ -100,10 +100,10 @@ public class Hospitalization2206829225Application {
             }
 
             // Generate Reservations
-            for (int i = 0; i < 12; i++) {
+            for (int i = 0; i < 3; i++) {
                 var reservation = new Reservation();
                 var dateIn = faker.date().future(5, TimeUnit.DAYS);
-                var dateOut = faker.date().future(2000, TimeUnit.DAYS, dateIn);
+                var dateOut = faker.date().future(20, TimeUnit.DAYS, dateIn);
 
                 var patient = patientList.get(faker.number().numberBetween(0, patientList.size()));
                 var room = roomList.get(faker.number().numberBetween(0, roomList.size()));
@@ -133,7 +133,7 @@ public class Hospitalization2206829225Application {
                 reservationService.addReservation(reservation);
             }
 
-            System.out.println("Data created: 5 Rooms, 5 Patients, 5 Nurses, 7 Facilities, and 12 Reservations.");
+            System.out.println("Data created: 5 Rooms, 5 Patients, 5 Nurses, 7 Facilities, and 3 Reservations.");
         };
     }
 

@@ -39,6 +39,16 @@ dependencies {
 	}
 	implementation 'com.fasterxml.jackson.core:jackson-databind'
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
+	implementation 'io.github.cdimascio:java-dotenv:5.2.2'
+	implementation 'com.fasterxml.jackson.core:jackson-databind'
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
+	implementation 'jakarta.xml.bind:jakarta.xml.bind-api-parent:4.0.2'
+	implementation 'org.glassfish.jaxb:jaxb-runtime:4.0.5'
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
+	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'
+	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6'
+	implementation 'jakarta.xml.bind:jakarta.xml.bind-api:4.0.2'
 
 }
 

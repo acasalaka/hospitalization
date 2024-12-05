@@ -3,9 +3,11 @@ package apap.ti.hospitalization2206829225.restservice;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -15,19 +17,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import apap.ti.hospitalization2206829225.model.Facility;
-import apap.ti.hospitalization2206829225.model.Patient;
 import apap.ti.hospitalization2206829225.model.Reservation;
 import apap.ti.hospitalization2206829225.model.Room;
 import apap.ti.hospitalization2206829225.repository.FacilityDb;
-import apap.ti.hospitalization2206829225.repository.NurseDb;
 import apap.ti.hospitalization2206829225.repository.PatientDb;
 import apap.ti.hospitalization2206829225.repository.ReservationDb;
 import apap.ti.hospitalization2206829225.repository.RoomDb;
 import apap.ti.hospitalization2206829225.restdto.request.AddReservationRequestRestDTO;
 import apap.ti.hospitalization2206829225.restdto.request.UpdateReservationRequestRestDTO;
+import apap.ti.hospitalization2206829225.restdto.response.FacilityResponseDTO;
 import apap.ti.hospitalization2206829225.restdto.response.ReservationResponseDTO;
 import jakarta.transaction.Transactional;
-
 
 @Service
 @Transactional
@@ -38,6 +38,10 @@ public class ReservationRestServiceImpl implements ReservationRestService {
 
     @Autowired
     FacilityDb facilityDb;
+
+
+    @Autowired
+    PatientRestService patientRestService;
 
     @Autowired
     PatientDb patientDb;
@@ -90,13 +94,19 @@ public class ReservationRestServiceImpl implements ReservationRestService {
         reservationResponseDTO.setTotalFee(reservation.getTotalFee());
         reservationResponseDTO.setAssignedNurse(reservation.getAssignedNurse());
         reservationResponseDTO.setRoomId(reservation.getRoomId());
-        // reservationResponseDTO.setCreatedAt(new java.sql.Timestamp(reservation.getCreatedAt().getTime()));
-        // reservationResponseDTO.setUpdatedAt(new java.sql.Timestamp(reservation.getUpdatedAt().getTime()));
         reservationResponseDTO.setCreatedAt(reservation.getCreatedAt());
         reservationResponseDTO.setUpdatedAt(reservation.getUpdatedAt());
 
-        
+        List<FacilityResponseDTO> listFacilityResponseDTO = new ArrayList<>();
+        for (Facility facility : reservation.getFacilities()) {
+            var facilityResponseDTO = new FacilityResponseDTO();
+            facilityResponseDTO.setId(facility.getId());
+            facilityResponseDTO.setName(facility.getName());
+            facilityResponseDTO.setFee(facility.getFee());
+            listFacilityResponseDTO.add(facilityResponseDTO);
+        }
 
+        reservationResponseDTO.setFacilities(listFacilityResponseDTO);
         return reservationResponseDTO;
     }
 
@@ -122,24 +132,24 @@ public class ReservationRestServiceImpl implements ReservationRestService {
         }
         return null;
     }
-
     @Override
-    public ReservationResponseDTO addReservation(AddReservationRequestRestDTO reservationDTO) {
-        // Step 1: Validate Room Capacity
+    public ReservationResponseDTO addReservation(AddReservationRequestRestDTO reservationDTO) { 
         Room room = roomDb.findById(reservationDTO.getRoomId())
-                .orElseThrow(() -> new IllegalArgumentException("Room with ID " + reservationDTO.getRoomId() + " not found"));
-        
-        long existingReservations = reservationDb.countByRoomIdAndDateRange(reservationDTO.getRoomId(), reservationDTO.getDateIn(), reservationDTO.getDateOut());
+                    .orElseThrow(() -> new IllegalArgumentException("Room with ID " + reservationDTO.getRoomId() + " not found"));
+        var patient = patientRestService.getPatientByIdFromRest(reservationDTO.getPatientId());
+
+
+
+        UUID assignedNurseId = getMockNurseIdFromSession();
+        if (assignedNurseId == null) {
+            throw new IllegalArgumentException("Only users with Nurse role can create a reservation");
+        }
+            long existingReservations = reservationDb.countByRoomIdAndDateRange(reservationDTO.getRoomId(), reservationDTO.getDateIn(), reservationDTO.getDateOut());
         if (existingReservations >= room.getMaxCapacity()) {
             throw new IllegalStateException("Room is fully booked for the selected date range");
         }
 
-        // Step 2: Validate Appointment ID (If Provided)
-        if (reservationDTO.getAppointmentId() != null && !mockCheckAppointment(reservationDTO.getAppointmentId())) {
-            throw new IllegalArgumentException("Appointment with ID " + reservationDTO.getAppointmentId() + " is not available or does not exist");
-        }
 
-        // Step 3: Validate Facilities
         List<UUID> facilityIds = reservationDTO.getFacilities();
         if (facilityIds != null) {
             Set<UUID> uniqueFacilities = new HashSet<>(facilityIds);
@@ -158,30 +168,31 @@ public class ReservationRestServiceImpl implements ReservationRestService {
             }
         }
 
-        Patient patient = patientDb.findById(reservationDTO.getPatientId())
-                .orElseThrow(() -> new IllegalArgumentException("Patient not found with ID: " + reservationDTO.getPatientId()));
-        
-        // Mock Assigned Nurse ID, assuming nurse session is available
-        UUID assignedNurseId = getMockNurseIdFromSession();
-        if (assignedNurseId == null) {
-            throw new IllegalArgumentException("Only users with Nurse role can create a reservation");
-        }
-
         int totalReservations = reservationDb.countAllReservations();
-        String reservationID = formatReservationID(reservationDTO.getDateIn(), reservationDTO.getDateOut(), patient.getNIK(), totalReservations);
+
+        String reservationID = formatReservationID(reservationDTO.getDateIn(), reservationDTO.getDateOut(), patient.getNik(), totalReservations);
 
         double totalFee = room.getPricePerDay() * getDateDifference(reservationDTO.getDateIn(), reservationDTO.getDateOut());
 
         Reservation reservation = new Reservation();
+        
         reservation.setId(reservationID);
         reservation.setDateIn(reservationDTO.getDateIn());
         reservation.setDateOut(reservationDTO.getDateOut());
         reservation.setTotalFee(totalFee);
-        reservation.setPatientId(patient.getId());
+        reservation.setPatientId(reservationDTO.getPatientId());
         reservation.setAssignedNurse(assignedNurseId);
         reservation.setRoomId(reservationDTO.getRoomId());
         reservation.setIsDeleted(false);
+        List<Facility> listFacilities = new ArrayList<>();
+        for (UUID facilityId : reservationDTO.getFacilities()) {
+            Facility facility = facilityDb.findById(facilityId).orElse(null);
+            if (facility != null){
+                listFacilities.add(facility);
+            }        
+        }
 
+        reservation.setFacilities(listFacilities);
         reservationDb.save(reservation);
 
         return reservationToReservationResponseDTO(reservation);
@@ -232,57 +243,7 @@ public class ReservationRestServiceImpl implements ReservationRestService {
         List<Reservation> reservations = reservationDb.findByRoomIdAndDateRange(roomId, dateIn, dateOut);
     
         return reservations.size() < room.getMaxCapacity();
-    }
-    
-
-
-    // @Override
-    // public ReservationResponseDTO updateFacilities(String reservationId, List<UUID> listOfFacilities) throws Exception {
-    //     Reservation reservation = reservationDb.findById(reservationId).orElse(null);
-
-    //     // Validasi: Cek apakah reservasi ditemukan
-    //     if (reservation == null) {
-    //         throw new IllegalArgumentException("Reservation with ID " + reservationId + " not found!");
-    //     }
-
-    //     // Validasi: Cek apakah dateOut belum tercapai
-    //     if (reservation.getDateOut().before(new Date())) {
-    //         throw new IllegalStateException("Facilities cannot be updated as the reservation has passed the check-out date.");
-    //     }
-
-    //     // Validasi: Cek apakah semua fasilitas yang di-request tersedia
-    //     List<UUID> unavailableFacilityIds = new ArrayList<>();
-    //     List<Facility> validFacilities = new ArrayList<>();
-
-    //     for (UUID facilityId : listOfFacilities) {
-    //         Optional<Facility> facilityOpt = facilityDb.findById(facilityId);
-    //         if (facilityOpt.isPresent()) {
-    //             validFacilities.add(facilityOpt.get());
-    //         } else {
-    //             unavailableFacilityIds.add(facilityId);
-    //         }
-    //     }
-
-    //     // Jika ada fasilitas yang tidak ditemukan, kembalikan error dengan daftar ID fasilitas yang tidak tersedia
-    //     if (!unavailableFacilityIds.isEmpty()) {
-    //         throw new Exception("The following facility IDs were not found: " + unavailableFacilityIds);
-    //     }
-
-    //     // Validasi: Cek duplikasi ID fasilitas dalam payload
-    //     Set<UUID> uniqueFacilities = new HashSet<>(listOfFacilities);
-    //     if (uniqueFacilities.size() < listOfFacilities.size()) {
-    //         throw new IllegalStateException("Duplicate facility IDs found in the request.");
-    //     }
-
-    //     // Update fasilitas reservasi
-    //     reservation.setFacilities(validFacilities);
-    //     reservationDb.save(reservation);
-
-    //     // Konversi ke DTO untuk respon
-    //     return reservationToReservationResponseDTO(reservation);
-    // }
-
-    public String formatReservationID(Date dateIn, Date dateOut, String patientNik, int totalReservations) {
+    }    public String formatReservationID(Date dateIn, Date dateOut, String patientNik, int totalReservations) {
         StringBuilder reservationID = new StringBuilder("RES");
 
         long dateDifference = getDateDifference(dateIn, dateOut);
@@ -307,7 +268,50 @@ public class ReservationRestServiceImpl implements ReservationRestService {
         return TimeUnit.DAYS.convert(diffInMillis, TimeUnit.MILLISECONDS) + 1;
     }
 
-    
+    @Override
+    public List<Room> findAvailableRoomByDate(Date dateIn, Date dateOut) {
+        var listRooms = roomDb.findAll();
+        var availableRooms = new ArrayList<Room>();
 
+        for (Room room : listRooms) {
 
+            boolean isAvailable = true;
+            int currentReservationCount = 0;
+
+            for (Reservation reservation : room.getReservations()) {
+                if (reservation.getIsDeleted()) {
+                    continue;
+                }
+
+                if (reservation.getDateIn().before(dateOut) && reservation.getDateOut().after(dateIn)) {
+                    currentReservationCount++;
+                }
+
+                if (currentReservationCount >= room.getMaxCapacity()) {
+                    isAvailable = false;
+                    break;
+                }
+            }
+
+            if (isAvailable) {
+                availableRooms.add(room);
+            }
+        }
+
+        return availableRooms;
+    }
+
+    @Override
+    public List<FacilityResponseDTO> getFacilities() {
+        List<Facility> facilities = facilityDb.findAll();
+        List<FacilityResponseDTO> facilityResponseDTOs = new ArrayList<>();
+        for (Facility facility : facilities) {
+            FacilityResponseDTO facilityResponseDTO = new FacilityResponseDTO();
+            facilityResponseDTO.setId(facility.getId());
+            facilityResponseDTO.setName(facility.getName());
+            facilityResponseDTO.setFee(facility.getFee());
+            facilityResponseDTOs.add(facilityResponseDTO);
+        }
+        return facilityResponseDTOs;
+    }    
 } 

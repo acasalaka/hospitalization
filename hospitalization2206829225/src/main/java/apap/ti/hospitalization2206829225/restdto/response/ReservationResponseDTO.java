@@ -7,9 +7,15 @@ import java.util.UUID;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
 @Getter
 @Setter
 public class ReservationResponseDTO {
@@ -33,6 +39,9 @@ public class ReservationResponseDTO {
     
     @JsonFormat(shape = JsonFormat.Shape.STRING, timezone="Asia/Jakarta")
     private Date updatedAt;
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private List<FacilityResponseDTO> facilities;
 
     
 }
