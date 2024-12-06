@@ -5,8 +5,8 @@ spring:
         name: hospitalization2206829225
     datasource: 
         url: jdbc:postgresql://localhost:15001/hospitalization2206829225
-        username: tk-apap-50
-        password: tk-apap-50
+        username: postgres
+        password: secret99
     jpa:
         properties:
             hibernate:
